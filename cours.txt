@@ -1,0 +1,147 @@
+Git Install git /création working space git / git init / création fichier git /ajout fichier a l'index
+
+INstallation Git:
+
+brew install git
+
+C:\Users\rober>D:
+
+D:\>cd TestRepGit
+D:\TestRepGit
+
+FAIRE git init dans ce répertoire uniquement pour partager que ce répertoire ainsi éviter de partager tous le disque que durs
+
+D:\TestRepGit>git init
+Initialized empty Git repository in D:/TestRepGit/.git/
+
+D:\TestRepGit>dir
+Le volume dans le lecteur D s’appelle Windows
+Le numéro de série du volume est BC13-5AE8
+
+Répertoire de D:\TestRepGit
+
+23/01/2025  08:30    <DIR>          .
+               0 fichier(s)                0 octets
+               1 Rép(s)  432 606 973 952 octets libres
+
+D:\TestRepGit>chdir
+D:\TestRepGit
+
+D:\TestRepGit>type nul >readme.txt
+
+D:\TestRepGit>dir
+ Le volume dans le lecteur D s’appelle Windows
+ Le numéro de série du volume est BC13-5AE8
+
+ Répertoire de D:\TestRepGit
+
+23/01/2025  09:19    <DIR>          .
+23/01/2025  09:19                 0 readme.txt
+               1 fichier(s)                0 octets
+               1 Rép(s)  432 606 961 664 octets libres
+               
+               
+
+D:\TestRepGit>dir
+ Le volume dans le lecteur D s’appelle Windows
+ Le numéro de série du volume est BC13-5AE8
+
+ Répertoire de D:\TestRepGit
+
+23/01/2025  08:44    <DIR>          .
+23/01/2025  08:44    <DIR>          readme.txt
+               0 fichier(s)                0 octets
+               2 Rép(s)  432 606 973 952 octets libres
+
+
+Ajout du fichier readme.txt dans l'index git
+
+D:\TestRepGit>git add readme.txt
+
+ Commande pour ajout des fichier ayant la même extension (*.extension)
+
+D:\TestRepGit>git add *.txt
+
+Pour faire commiter le fichier c'est à dire le faire passer dans le local repository ou dépôt local
+
+D:\TestRepGit>git commit -m "Premier commit"    le -m signifie le message ici premier commit
+
+
+Sous Linux : git ls-files --stage pour connaitre le répository index staging 
+           : git ls-tree -r HEAD pour connaitre le local repository 
+           
+           
+           
+           
+Commande DOS pour écrire dans un fichier .txt : echo [Texte entier] > [Nom du fichier].txt
+
+D:\TestRepGit>echo Salut > readme.txt
+
+
+D:\TestRepGit>echo Salut > readme.txt
+
+D:\TestRepGit>git status
+On branch master
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        readme.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+D:\TestRepGit>git add readme.txt
+
+D:\TestRepGit>git status
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+        new file:   readme.txt
+
+D:\TestRepGit>git commit -m "Premier commit"
+[master (root-commit) b747591] Premier commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 readme.txt
+
+D:\TestRepGit>
+
+
+D:\TestRepGit>type nul > cours.txt
+
+D:\TestRepGit>dir
+ Le volume dans le lecteur D s’appelle Windows
+ Le numéro de série du volume est BC13-5AE8
+
+ Répertoire de D:\TestRepGit
+
+23/01/2025  10:13    <DIR>          .
+23/01/2025  10:13                 0 cours.txt
+23/01/2025  09:32                 8 readme.txt
+               2 fichier(s)                8 octets
+               1 Rép(s)  432 606 949 376 octets libres
+
+D:\TestRepGit>git status
+On branch master
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        cours.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+D:\TestRepGit>git add cours.txt
+
+D:\TestRepGit>git status
+On branch master
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   cours.txt
+        
+        
+        
+        
+        
+use "git restore --staged <file>..." to unstage)
