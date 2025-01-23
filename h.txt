@@ -1,0 +1,211 @@
+Création VM Hyper-V avec Powershell
+
+~# Nom de la VM
+ $Name = "VM-W11"                        ----------------------nous avons stocké le nom dans une variable appellé $Name de facon à pouvoir le rappeler facilement tout au long de la procédure
+
+ # Créer la VM
+ New-VM -Name $Name -MemoryStartupBytes 4GB -Generation 2 -Path "D:\Hyper-V" -NewVHDPath "D:\Hyper-V\$Name\Virtual Hard Disks\$Name.vhdx" -NewVHDSizeBytes 64GB  -SwitchName "LAN-Physique"
+
+
+ # Définir l'image ISO dans le lecteur DVD de la VM
+ Add-VMDvdDrive -VMName $Name -Path "D:\Win11_24H2_French_x64.iso"
+
+
+ # Ajuster l'ordre de démarrage
+ Set-VMFirmwaree -VMName $Name -BootOrder $(Get-VMDvdDrive -VMName $Name), $(Get-VMNetworkAdapter -VMName $Name), $(Get-VMHardDiskDrive -VMName $Name)
+
+
+ # Modifier le nombre de CPU "processeur" virtuel
+ Set-VM -Name $Name -ProcessorCount 2
+
+ # Configurer la puce TPM virtuelle vTPM
+ Set-VMKeyProtector -VMName $Name -NewLocalKeyProtector
+ Get-VM -Name $Name | Enable-VMTPM
+
+
+
+
+ Param(
+    [Parameter(Mandatory=$true)][string]$Name
+    [Parameter(Mandatory=$true)]$RAM
+    [Parameter(Mandatory=$true)][int64]$CPU,|
+    [Parameter(Mandatory=$false)][String]$ISO,
+    [Parameter(Mandatory=$false)][ValidateRange(1,2)][int]$Gen = 2,
+    [Parameter(Mandatory=$false)][ValidateScript({$_ -in (Get-VMSwitch).Name})][string]$Switch,
+    [Parameter(Mandatory=$true)][ValidateScript({Test-Path $_})][string]$VMPath,
+    [Parameter(Mandatory=$true)][int64]$VHDSize
+    [Parameter(Mandatory=$false)][bootlean]$TPM
+
+
+)
+
+
+
+
+ # La VM existe-elle déjà ?
+ $VMCheck = Get-VM -Name $Name -ErrorAction silentlyContinue
+
+ # Si la VM n'existe pas et que le chemin ne correspond pas déjà) a une autre VM, On lance ?
+ if(($VMCheck -eq $null) -and (-not (Test-Path "$VMPath\$Name"))){
+
+     # Affichage des informations
+     Write-Host "###########################" -ForegroundColor Yellow
+     Write-Host "# Nom de la VM : $Name" -ForegroundColor Green
+     Write-Host "# Mémoire vive : $($RAM/1MB) Mo" -ForegroundColor Green
+     Write-Host "# CPU virtuels : $CPU" -ForegroundColor Green
+     Write-Host "# Image ISO : $ISO" -ForegroundColor Green
+     Write-Host "# Génération : $Gen" -ForegroundColor Green
+     Write-Host "# Réseau virtuel : $Switch" -ForegroundColor Green
+     Write-Host "# Puce vTPM : $TPM" -ForegroundColor Green
+     Write-Host "# Stockage VM : $VMPath" -ForegroundColor Green
+     Write-Host "# Taille disque virtuel : $($VHDSize/1GB) Go" -ForegroundColor Green
+     Write-Host "###########################" -ForegroundColor Yellow
+
+     # Créer la VM avec le minimum de paramètres
+     try{
+         New-VM -Name $Name -MemoryStartupBytes $RAM -Generation $Gen -Path $VMPath
+                -NewVHDPath "$VMPath\$Name\Virtual Hard Disks\$Name.vhdx" -NewVHDSizeBytes $VHDSize
+
+         Write-Host "> $Name - Machine virtuelle créée" -ForegroundColor Green
+
+     }catch{
+         Write-Host $_.Exception.Message -ForegroundColor Red
+         exit
+
+ }
+
+
+ # Ajouter une image ISO (si nécessaire) et ajuster l'ordre de boot
+ if(($ISO -ne "") -and ($iso -ne " ") -and ($ISO -ne $null)) {
+
+
+         try{
+             Add-VMDvdDrive -VMName $Name -Path $ISO -ErrorAction Stop
+             Write-Host "> $Name - Image ISO associée au lecteur DVD" -ForegroundColor Green
+         }catch{
+            Write-Host $_.Exception.Message -ForegroundColor Red
+         }
+
+         try{
+             Set-VMFirmware -VMName -BootOrder $(Get-VMName $Name),
+             Write-Host "> $Name - Ordre de démarrage configuré" -ForegroundColor Green
+         }catch{
+            Write-Host $_.Exception.Message -ForegroundColor Red
+
+         }
+ }
+
+ # Configurer le vCPU sur la VM
+ if($CPU -ne $null) {
+         try{
+             Set-VM -Name $Name -ProcessorCount $CPU -ErrorAction Stop
+             Write-Host "> $Name - CPU virtuel configuré à ¨$CPU" -ForegroundColor Green
+         }catch{
+             Write-Host $_.Exception.Message -ForegroundColor Red
+         }
+ }
+
+ # Activer la puce TPM sur la VM        (si nécessaire)
+ if($TPM -eq $True){
+
+     try{
+         Set-VMKeyProtector -VMName $Name -NewLocalKeyProtector -ErrorAction Stop
+         Get-VM -Name $Name | Enable-VMTPM -ErrorAction Stop
+         Write-Host "> $Name - Puce vTPM activée" -ForegroundColor Green
+     }catch{
+         Write-Host $_.Exception.Message -ForegroundColor Red
+
+     }
+ }
+
+
+ # Connecter la VM sur réseau virtuel si nécessaire
+ if(($Switch -ne "") -and ($Switch -ne " ") -and ($Switch -ne $null)) {
+
+     try{
+         Get-VM -Name $Name | Get-VMNetworkAdapter | Connect-VMNetworkAdapter -SwitchName $Switch
+         Write-Host "> $Name -Réseau connecté sur vSwitch $Switch" -ForegroundColor Green
+      }catch{
+         Write-Host $_.Exception.Message -ForegroundColor Red
+
+      }
+ }
+
+
+ Write-Host "####################################" -ForegroundColor Yellow
+ Write-Host ">> Machine virtuelle $Name créee avec succès  !" -ForegroundColor Green
+
+
+ }else{
+     Write-Host "Opération annulée : la VM existe déjà ou il y a un conflit avec le répertoire
+
+
+
+
+ Pour appeler le script :
+
+  .\nomduscript.ps1 -Name "VM-W11" -RAM 4GB -CPU 2 -ISO "D:\Win11_24H2_French_x64.iso" -Gen 2 -VMPath "D:\Hyper-V" -VHDSize 64GB -TPM $true -Switch "LAN-Physique"
+
+
+
+  # Création de plusieurs machine virtuelles
+  $VMList = ("VM-W11-1","VM-W11-2","VM-W11-3")
+
+
+  Foreach($VM in $VMList){
+
+      .\New-VMCustom.ps1 -Name $VM -RAM 4GB -CPU 2 -ISO "D:\Win11_24H2_French_x64.iso" -Gen 2
+                   -VMPath "D:\Hyper-V" -VHDSize 64GB -TPM $true -Switch "LAN-Physique"
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
